@@ -1,0 +1,87 @@
+name: AWS Service CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  aws:
+    permissions:
+      id-token: write
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+
+
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Change working directory to ./aws
+        run: cd ./aws
+
+      - name: Install Python version platform
+        run: |
+          python -m pip install --upgrade pip
+          # install your Python dependencies here
+          npm install -g aws-cdk
+
+      - name: Cleanup and source active
+        run: rm -rf ./.venv && python3 -m venv .venv && . .venv/bin/activate
+
+      - name: Install Python dependencies and CDK
+        run: cd ./aws && python3 -m pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        run: echo "bypass Configure AWS credentials"
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@master
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: "us-east-1"
+
+      - name: Testing codebase & Generate report Coverage
+        run: cd ./aws && cdk synth && python3 -m coverage run -m pytest && python3 -m coverage report -m  
+
+      - name: AWS Synth
+        run: true && echo "AWS Synth" || (cd ./aws && cdk synth)
+      - name: Deploy to AWS
+        run: true && echo "Deploy to AWS" || (cd ./aws && sdk bootstrap && cdk deploy --app="python3 ${PWD}/app.py" --require-approval=never)
+      - name: Destroy stack
+        run: true && echo "Destroy stack"  || (cd ./aws && sdk bootstrap && cdk destroy --app="python3 ${PWD}/app.py" --force)
+
+  fe:
+    permissions:
+      id-token: write
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - uses: actions/checkout@v3
+
+      - name: Lint and Dependencies install
+        run: cd ./fe && yarn && yarn lint && yarn build
+
+      - name: Destroy to Gitlab
+        run: echo "Successful"
