@@ -4,7 +4,7 @@
     attached in github demo.mov
 
 ## Test coverage
-    attached in github coverage.png
+    attached in github coverage.png, CI-Test.png, CI-Test-AWS-Synth.png
 
 ## Stacks
     aws-stacks: Lambda, Dynamodb, Cloudwatch, CDK, Amplify
