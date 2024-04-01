@@ -53,10 +53,10 @@ jobs:
       #     aws-region: "us-east-1"
 
       - name: Testing codebase & Generate report Coverage
-        run: cd ./aws && cdk synth && python3 -m coverage run -m pytest && python3 -m coverage report -m  
+        run: cd ./aws && python3 -m coverage run -m pytest && python3 -m coverage report -m
 
       - name: AWS Synth
-        run: true && echo "AWS Synth" || (cd ./aws && cdk synth)
+        run: cd ./aws && cdk synth
       - name: Deploy to AWS
         run: true && echo "Deploy to AWS" || (cd ./aws && sdk bootstrap && cdk deploy --app="python3 ${PWD}/app.py" --require-approval=never)
       - name: Destroy stack
